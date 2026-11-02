@@ -1,0 +1,163 @@
+.ht-card {
+  --ht-h: 150;
+  --ht-accent: hsl(var(--ht-h) 70% 66%);
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 16px 32px 18px;
+  background:
+    radial-gradient(120% 100% at 0% 0%, hsl(var(--ht-h) 42% 24% / .85), transparent 62%),
+    linear-gradient(155deg, hsl(var(--ht-h) 16% 13%), hsl(var(--ht-h) 10% 7%));
+  color: #f5f5f2;
+  font: 400 12px/1.35 Roboto, "YouTube Sans", Arial, sans-serif;
+  text-align: left;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  container-type: size;
+}
+.ht-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--ht-accent); opacity: .9;
+}
+.ht-card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.ht-card .ht-title {
+  font-size: 16px; font-weight: 600; line-height: 1.25; letter-spacing: -.005em; text-wrap: pretty;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  word-break: break-word;
+}
+.ht-card .ht-meta {
+  color: hsl(var(--ht-h) 35% 78%); font-size: 10.5px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ht-card .ht-chips, .ht-card .ht-desc { display: none; }
+.ht-card .ht-chips { flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.ht-card .ht-chip {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.09); color: #e2e2de;
+  border-radius: 999px; padding: 1px 8px; font-size: 11px;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ht-card .ht-desc {
+  color: #c9c9c4; margin-top: 1px;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
+}
+.ht-card .ht-desc.ai { color: var(--ht-accent); }
+
+/* Hover toolbar: one frosted pill */
+.ht-bar {
+  position: fixed; z-index: 2147483647; display: none; flex-wrap: wrap; align-items: center; gap: 2px;
+  padding: 3px; border-radius: 999px;
+  background: rgba(18,18,20,.78); -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 6px 18px rgba(0,0,0,.45);
+}
+.ht-bar .ht-btn {
+  cursor: pointer; border: 0; background: transparent; color: #f2f2ee; border-radius: 999px; padding: 4px 10px;
+  font: 500 12px Roboto, Arial, sans-serif; white-space: nowrap; user-select: none; -webkit-user-select: none;
+  transition: background .12s;
+}
+.ht-bar .ht-btn:hover { background: rgba(255,255,255,.14); }
+.ht-bar .ht-btn:active { background: rgba(255,255,255,.22); }
+.ht-bar .ht-btn[data-act="peek"] { touch-action: none; }
+
+/* Dim videos you've already watched (they keep their place, and light up on hover). */
+[data-ht-watched] { opacity: .42; transition: opacity .15s ease; }
+[data-ht-watched]:hover { opacity: 1; }
+/* Show more only when the card is big enough (home grid / search); sidebar cards stay compact. */
+@container (min-height: 120px) { .ht-card .ht-chips { display: flex; } }
+@container (min-height: 165px) { .ht-card .ht-desc { display: -webkit-box; } }
+@container (max-height: 100px) { .ht-card { gap: 3px; padding-bottom: 10px; } .ht-card .ht-title { font-size: 13px; } }
+
+/* In title-card mode, never let YouTube's hover video preview cover the card. */
+html[data-ht-mode="text"] ytd-video-preview,
+html[data-ht-mode="text"] yt-video-preview,
+html[data-ht-mode="text"] #video-preview,
+html[data-ht-mode="text"] ytd-moving-thumbnail-renderer { display: none !important; }
+
+/* Summary mode: the summary uses the entire card. */
+.ht-card.ht-card-sum { justify-content: safe center; gap: 5px; padding: 10px 16px 26px 18px; }
+@container (max-height: 210px) { .ht-card .ht-sumsrc { display: none; } .ht-card .ht-bul.many li { -webkit-line-clamp: 1; margin-bottom: 2px; } }
+.ht-card .ht-sumlabel { color: var(--ht-accent); font-size: 10.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
+.ht-card .ht-gist { color: #f2f2f2; font-weight: 600; font-size: calc(var(--ht-fs, 13px) + 1px); line-height: 1.3; }
+.ht-card .ht-bul { margin: 0; padding: 0; list-style: none; font-size: var(--ht-fs, 13px); line-height: 1.3; color: #dcdce2; }
+.ht-card .ht-bul li {
+  position: relative; padding-left: 14px; margin: 0 0 3px; word-break: break-word;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+.ht-card .ht-bul li::before { content: ''; position: absolute; left: 3px; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--ht-accent); }
+@container (min-width: 320px) { .ht-card .ht-bul.many { column-count: 2; column-gap: 16px; } .ht-card .ht-bul.many li { break-inside: avoid; } }
+.ht-card .ht-sumsrc { color: #8d8d95; font-size: 10px; }
+
+/* Visible while the model is thinking, even when the mouse leaves. */
+.ht-card .ht-busy { display: flex; align-items: center; gap: 8px; color: var(--ht-accent); font-weight: 500; }
+.ht-card .ht-spin {
+  width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.15); border-top-color: var(--ht-accent); border-radius: 50%;
+  animation: ht-rot .8s linear infinite;
+}
+@keyframes ht-rot { to { transform: rotate(360deg); } }
+
+.ht-card .ht-chip.warn { background: rgba(255,196,0,.14); border-color: rgba(255,196,0,.28); color: #ffd98a; }
+.ht-watch .ht-chip.warn { background: rgba(240,170,0,.18); color: #8a5a00; }
+html[dark] .ht-watch .ht-chip.warn { color: #ffd98a; }
+
+/* Hide Shorts / Mixes */
+[data-ht-hidden] { display: none !important; }
+html[data-ht-no-shorts] ytd-reel-shelf-renderer,
+html[data-ht-no-shorts] ytd-rich-shelf-renderer[is-shorts],
+html[data-ht-no-shorts] ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+html[data-ht-no-shorts] ytd-guide-entry-renderer:has(a[title="Shorts"]),
+html[data-ht-no-shorts] ytd-mini-guide-entry-renderer[aria-label="Shorts"] { display: none !important; }
+html[data-ht-no-mixes] ytd-radio-renderer { display: none !important; }
+
+/* Watch-page panel (follows YouTube's light/dark theme) */
+.ht-watch {
+  --ht-green: #13804a;
+  position: relative; box-sizing: border-box; margin: 12px 0; padding: 14px 16px 14px 18px; border-radius: 12px; overflow: hidden;
+  background: var(--yt-spec-badge-chip-background, rgba(127,127,127,.12));
+  color: var(--yt-spec-text-primary, inherit); font: 400 14px/1.45 Roboto, Arial, sans-serif;
+}
+html[dark] .ht-watch { --ht-green: #7ee2a8; }
+.ht-watch::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--ht-green); }
+.ht-watch .ht-whead {
+  display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; opacity: .65; margin-bottom: 8px;
+}
+.ht-watch .ht-mark {
+  width: 14px; height: 10px; border: 2px solid var(--ht-green); border-radius: 3px; box-sizing: border-box; position: relative; opacity: 1;
+}
+.ht-watch .ht-mark::after {
+  content: ''; position: absolute; left: 3px; top: 1px; border-left: 4px solid var(--ht-green);
+  border-top: 2px solid transparent; border-bottom: 2px solid transparent;
+}
+.ht-watch .ht-wchips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.ht-watch .ht-chip { background: rgba(127,127,127,.18); color: inherit; border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+.ht-watch .ht-sumlabel { color: var(--ht-green); font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; margin: 4px 0 6px; }
+.ht-watch .ht-gist { font-weight: 600; font-size: 16px; line-height: 1.35; margin-bottom: 6px; }
+.ht-watch .ht-bul { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.ht-watch .ht-bul li { position: relative; padding-left: 16px; margin: 0 0 5px; }
+.ht-watch .ht-bul li::before { content: ''; position: absolute; left: 3px; top: .58em; width: 6px; height: 6px; border-radius: 50%; background: var(--ht-green); }
+.ht-watch .ht-bul.many { column-count: 2; column-gap: 28px; }
+.ht-watch .ht-bul.many li { break-inside: avoid; }
+.ht-watch .ht-sumsrc { font-size: 11px; opacity: .55; margin-top: 6px; }
+.ht-watch .ht-wactions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.ht-watch .ht-wbtn {
+  cursor: pointer; border: 0; border-radius: 999px; padding: 7px 15px; font: 500 13px Roboto, Arial, sans-serif;
+  background: rgba(127,127,127,.2); color: inherit; transition: background .12s;
+}
+.ht-watch .ht-wbtn:first-child { background: var(--ht-green); color: #fff; }
+html[dark] .ht-watch .ht-wbtn:first-child { color: #0b2416; }
+.ht-watch .ht-wbtn:hover { background: rgba(127,127,127,.32); }
+.ht-watch .ht-wbtn:first-child:hover { filter: brightness(1.08); background: var(--ht-green); }
+.ht-watch .ht-wbtn[disabled] { opacity: .6; cursor: progress; }
+.ht-watch .ht-werr { margin-top: 6px; color: #c5221f; font-size: 13px; }
+html[dark] .ht-watch .ht-werr { color: #ff8a80; }
+.ht-watch .ht-busy { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.ht-watch .ht-spin {
+  width: 12px; height: 12px; border: 2px solid rgba(127,127,127,.35); border-top-color: var(--ht-green); border-radius: 50%;
+  animation: ht-rot .8s linear infinite;
+}

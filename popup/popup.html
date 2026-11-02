@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Honest Thumbnails</title>
+  <link rel="stylesheet" href="../ui/base.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <img class="logo" src="../icons/icon48.png" alt="">
+    <div class="head">
+      <h1 class="wordmark"><em>Honest</em> Thumbnails</h1>
+      <p id="stats">Nothing swapped yet today</p>
+    </div>
+    <input type="checkbox" class="sw big" id="enabled" title="Turn everything on or off">
+  </header>
+
+  <main id="body">
+    <div class="modes" role="radiogroup" aria-label="Instead of the thumbnail, show">
+      <label class="mode" title="A real frame from the video">
+        <input type="radio" name="mode" value="frame">
+        <span class="pv pv-frame"><i class="sun"></i><i class="hill"></i></span>
+        <b>Real frame</b>
+      </label>
+      <label class="mode" title="Title, channel and facts, plus summaries on hover">
+        <input type="radio" name="mode" value="text">
+        <span class="pv pv-text"><i></i><i></i><i></i></span>
+        <b>Title card</b>
+      </label>
+      <label class="mode" title="Leave YouTube's thumbnails alone">
+        <input type="radio" name="mode" value="original">
+        <span class="pv pv-orig"><i>!?</i></span>
+        <b>Original</b>
+      </label>
+    </div>
+
+    <div class="ctx" id="frameRow">
+      <span>Frame from</span>
+      <div class="seg" role="radiogroup" aria-label="Which frame">
+        <label><input type="radio" name="frame" value="1"><span>Early</span></label>
+        <label><input type="radio" name="frame" value="2"><span>Middle</span></label>
+        <label><input type="radio" name="frame" value="3"><span>Late</span></label>
+      </div>
+    </div>
+    <label class="ctx" id="hoverRow" title="Likes, chapters and the description appear when you hover a title card">
+      <span>Load details on hover</span><input type="checkbox" class="sw" id="hoverDetails">
+    </label>
+
+    <div class="tiles">
+      <label class="tile" title="No ALL CAPS, emoji spam or “!!!”"><span>Calm titles</span><input type="checkbox" class="sw sm" id="calmTitles"></label>
+      <label class="tile" title="A small ⚠ chip on title cards with clickbait wording"><span>Flag clickbait</span><input type="checkbox" class="sw sm" id="clickbaitFlag"></label>
+      <label class="tile" title="Remove the Shorts shelf and Shorts in feeds"><span>Hide Shorts</span><input type="checkbox" class="sw sm" id="hideShorts"></label>
+      <label class="tile" title="Remove auto-generated Mix playlists"><span>Hide Mixes</span><input type="checkbox" class="sw sm" id="hideMixes"></label>
+      <label class="tile" title="Fade videos that already have a watch-progress bar"><span>Dim watched</span><input type="checkbox" class="sw sm" id="dimWatched"></label>
+      <label class="tile" title="Summary, chapters and copy under the player on video pages"><span>Video panel</span><input type="checkbox" class="sw sm" id="watchPanel"></label>
+    </div>
+
+    <a class="filters" href="#" id="openFilters">
+      <span id="filtersText">Muted words &amp; trusted channels</span><span class="chev">›</span>
+    </a>
+
+    <div class="visible" id="visibleBox">
+      <div id="sumAsk" class="vrow">
+        <span class="txt"><b>Summarize what’s on screen</b><small>Up to 10 videos · uses your daily limit</small></span>
+        <button id="sumVisible" type="button">✨ Summarize</button>
+      </div>
+      <div id="sumConfirm" class="vrow" hidden>
+        <span class="txt"><b>Summarize up to 10 videos?</b></span>
+        <span class="btns"><button id="sumCancel" type="button" class="ghost">Cancel</button><button id="sumGo" type="button">Go</button></span>
+      </div>
+      <small id="sumMsg"></small>
+    </div>
+  </main>
+
+  <footer>
+    <p class="tip">Tip: hold <kbd>Alt</kbd> over a thumbnail to peek at the original.</p>
+    <div class="foot">
+      <a href="#" id="openOptions">Settings</a>
+      <span><kbd id="shortcut">Alt+Shift+H</kbd> on/off</span>
+    </div>
+  </footer>
+  <script src="popup.js"></script>
+</body>
+</html>

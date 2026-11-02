@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Honest Thumbnails – Settings</title>
+  <link rel="stylesheet" href="../ui/base.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <img class="logo" src="../icons/icon128.png" alt="">
+      <div>
+        <h1 class="wordmark"><em>Honest</em> Thumbnails</h1>
+        <p class="tagline serif"><i>See what a video is, not what it shouts.</i></p>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap layout">
+    <nav class="side" aria-label="Settings sections">
+      <a href="#summaries"><span>✨</span>Summaries</a>
+      <a href="#filters"><span>🔇</span>Muted words</a>
+      <a href="#channels"><span>⊘</span>Trusted channels</a>
+      <a href="#extras"><span>⚙︎</span>Extras</a>
+      <a href="#about"><span>ℹ︎</span>About</a>
+    </nav>
+
+    <main>
+      <!-- Summaries -->
+      <section id="summaries" class="sec">
+        <h2 class="title">Summaries</h2>
+        <p class="lede">With the title card on, hover a video and press <b>✨ Summarize</b> for a gist and key points.
+          Nothing leaves your device unless you choose your own API. Results are cached locally.</p>
+
+        <div class="providers" role="radiogroup" aria-label="Summary provider">
+          <label class="prov">
+            <input type="radio" name="aiProvider" value="off">
+            <span class="pbody"><b>Off</b><small>No AI. Chapters still work as a free summary.</small></span>
+          </label>
+          <label class="prov">
+            <input type="radio" name="aiProvider" value="chrome">
+            <span class="pbody"><b>On-device</b><small>Chrome’s built-in model. Free and private; needs a recent Chrome and a capable computer.</small></span>
+          </label>
+          <label class="prov">
+            <input type="radio" name="aiProvider" value="api">
+            <span class="pbody"><b>My own API</b><small>OpenAI, Gemini, OpenRouter, or a local model like Ollama.</small></span>
+          </label>
+        </div>
+
+        <div class="card form" id="apiBox">
+          <label>Preset
+            <select id="preset">
+              <option value="">Choose a provider to fill in the fields…</option>
+              <option value="openai">OpenAI</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="ollama">Ollama (local)</option>
+              <option value="lmstudio">LM Studio (local)</option>
+            </select>
+          </label>
+          <label>Endpoint <small>OpenAI-compatible, without /chat/completions</small>
+            <input id="aiEndpoint" type="url" placeholder="https://api.openai.com/v1"></label>
+          <div class="two">
+            <label>Model <small>Check your provider for current names</small>
+              <input id="aiModel" type="text" placeholder="gpt-4o-mini"></label>
+            <label>Daily limit <small>Per day</small>
+              <input id="aiDailyCap" type="number" min="1" max="2000"></label>
+          </div>
+          <label>API key <small>Stored only on this device. Leave empty for local models.</small>
+            <input id="aiKey" type="password" autocomplete="off"></label>
+          <div class="usage"><span>Used today</span><span class="meter"><i id="usageBar"></i></span><span id="usageText">0</span></div>
+        </div>
+
+        <div class="card">
+          <label class="row"><span class="txt">Summary language<small>On-device writes English, Spanish or Japanese only; other languages need your own API.</small></span>
+            <select id="summaryLang">
+              <option value="auto">Same as browser</option>
+              <option value="en">English</option><option value="es">Spanish</option><option value="hi">Hindi</option>
+              <option value="te">Telugu</option><option value="ta">Tamil</option><option value="fr">French</option>
+              <option value="de">German</option><option value="pt">Portuguese</option><option value="ja">Japanese</option>
+              <option value="ko">Korean</option><option value="zh">Chinese</option><option value="ar">Arabic</option>
+              <option value="ru">Russian</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="savebar" id="saveBar">
+          <button id="save" type="button">Save summary settings</button><span id="status" role="status"></span>
+        </div>
+
+        <details class="notes">
+          <summary>Good to know</summary>
+          <ul>
+            <li>Saving asks Chrome for permission to contact <i>only</i> the endpoint you entered.</li>
+            <li>Ollama users: start it with <code>OLLAMA_ORIGINS=chrome-extension://*</code> so the extension is allowed to call it.</li>
+            <li>A summary uses the video’s captions when they can be read, otherwise its description. The card says which.</li>
+            <li>A small model typically costs well under a cent per video. Your provider’s pricing page has the exact rates.</li>
+          </ul>
+        </details>
+      </section>
+
+      <!-- Muted words -->
+      <section id="filters" class="sec">
+        <h2 class="title">Muted words</h2>
+        <p class="lede">Videos whose title or channel name contains one of these are hidden from your feeds.
+          Whole words only, not case-sensitive. Saved as you type.</p>
+        <div class="card chipbox" id="muteBox">
+          <div class="chips" id="muteChips"></div>
+          <input id="muteInput" type="text" placeholder="Add a word or phrase, then press Enter" autocomplete="off" spellcheck="false">
+        </div>
+        <p class="hint" id="muteHint">“crypto” hides <i>Crypto news</i> but not <i>Cryptography explained</i>.</p>
+      </section>
+
+      <!-- Trusted channels -->
+      <section id="channels" class="sec">
+        <h2 class="title">Trusted channels</h2>
+        <p class="lede">These channels keep their original thumbnails and titles. To add one, hover any of its thumbnails on YouTube
+          and press <b>⊘ Skip channel</b>.</p>
+        <div class="card">
+          <ul class="chanlist" id="exList"></ul>
+          <div class="empty" id="exEmpty">
+            <span class="emptyart">⊘</span>
+            <span>No trusted channels yet.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Extras -->
+      <section id="extras" class="sec">
+        <h2 class="title">Extras</h2>
+        <div class="card">
+          <label class="row"><span class="txt">Sponsor time from SponsorBlock<small>Shows “💰 Sponsor ~2m” using community data. Only a short, partial fingerprint of the video ID is sent to sponsor.ajay.app.</small></span>
+            <input type="checkbox" class="sw" id="sponsorChip"></label>
+          <div class="row">
+            <span class="txt">Cached details and summaries<small id="cacheInfo">Stored on this device for your newest 400 videos.</small></span>
+            <button type="button" class="ghost" id="clearCache">Clear</button>
+          </div>
+          <div class="row">
+            <span class="txt">Keyboard shortcut<small>Turns everything on or off. Change it at <code>chrome://extensions/shortcuts</code>.</small></span>
+            <kbd id="shortcut">Alt+Shift+H</kbd>
+          </div>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="sec">
+        <h2 class="title">About</h2>
+        <div class="card about">
+          <div class="aboutHead">
+            <img src="../icons/icon48.png" alt="">
+            <div>
+              <div class="wordmark"><em>Honest</em> Thumbnails</div>
+              <small>Version <span id="version">–</span> · MIT licensed · free and open source</small>
+            </div>
+          </div>
+          <p>Made by <b>Subrahmanyam KVJ</b>. No accounts, no analytics, no servers of ours: everything runs in your browser.</p>
+          <div class="links">
+            <a href="https://github.com/sub8u/honest-thumbnails" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/sub8u/honest-thumbnails/issues" target="_blank" rel="noopener">Report a problem</a>
+            <a href="https://github.com/sub8u/honest-thumbnails/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
+          </div>
+          <small class="credits">Wordmark set in Instrument Serif (SIL Open Font License). Sponsor data from the SponsorBlock community. Not affiliated with YouTube or Google.</small>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="../src/titles.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
