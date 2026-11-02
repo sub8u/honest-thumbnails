@@ -176,28 +176,51 @@
   const ONDEVICE_LANGS = ['en', 'es', 'ja'];
 
   // Preferred on-device path: the Prompt API (follows our format). Falls back to the Summarizer API.
-  async function chromePrompt(system, userText, lang) {
-    if (!('LanguageModel' in self)) return null;
-    const avail = await LanguageModel.availability().catch(() => 'unavailable');
-    if (avail === 'unavailable') return null;
-    const out = ONDEVICE_LANGS.includes(lang) ? lang : 'en';
-    let session;
-    try {
-      session = await LanguageModel.create({
-        initialPrompts: [{ role: 'system', content: system }],
-        expectedInputs: [{ type: 'text', languages: ['en'] }],
-        expectedOutputs: [{ type: 'text', languages: [out] }]
-      });
-    } catch (e) {
-      try { session = await LanguageModel.create({ initialPrompts: [{ role: 'system', content: system }] }); }
-      catch (e2) { return null; }
-    }
-    try { return (await session.prompt(userText)).trim(); }
-    finally { try { session.destroy(); } catch (e) { /* ignore */ } }
+  // Ask for an exact shape (gist + bullets) so the model can't pad or wander; falls back to plain text.
+  function summarySchema(n) {
+    return {
+      type: 'object',
+      properties: {
+        gist: { type: 'string' },
+        bullets: { type: 'array', items: { type: 'string' }, minItems: n || 3, maxItems: n || 5 }
+      },
+      required: ['gist', 'bullets']
+    };
   }
 
-  async function chromeSummarize(system, userText, n, lang) {
-    const viaPrompt = await chromePrompt(system, userText, lang).catch(() => null);
+  function downloadMonitor(onProgress) {
+    return (m) => m.addEventListener('downloadprogress', (e) => onProgress && onProgress(e.loaded));
+  }
+
+  async function chromePrompt(system, userText, lang, n, onProgress) {
+    if (!('LanguageModel' in self)) return null;
+    const out = ONDEVICE_LANGS.includes(lang) ? lang : 'en';
+    const io = {
+      expectedInputs: [{ type: 'text', languages: [...new Set(['en', out])] }],
+      expectedOutputs: [{ type: 'text', languages: [out] }]
+    };
+    const avail = await LanguageModel.availability(io).catch(() => 'unavailable');
+    if (avail === 'unavailable') return null;
+    let session;
+    try {
+      session = await LanguageModel.create({ ...io, initialPrompts: [{ role: 'system', content: system }], monitor: downloadMonitor(onProgress) });
+    } catch (e) {
+      try { session = await LanguageModel.create({ initialPrompts: [{ role: 'system', content: system }], monitor: downloadMonitor(onProgress) }); }
+      catch (e2) { return null; }
+    }
+    try {
+      try {
+        const j = JSON.parse(await session.prompt(userText, { responseConstraint: summarySchema(n) }));
+        if (j && (j.gist || (j.bullets && j.bullets.length))) {
+          return [String(j.gist || '').trim(), ...(j.bullets || []).map((b) => '- ' + String(b).trim())].join('\n');
+        }
+      } catch (e) { /* older Chrome or invalid JSON: ask again in plain text */ }
+      return (await session.prompt(userText)).trim();
+    } finally { try { session.destroy(); } catch (e) { /* ignore */ } }
+  }
+
+  async function chromeSummarize(system, userText, n, lang, onProgress) {
+    const viaPrompt = await chromePrompt(system, userText, lang, n, onProgress).catch(() => null);
     if (viaPrompt) return viaPrompt;
     if (!('Summarizer' in self)) throw new Error("Chrome's built-in AI isn't available here. Try 'Your own API'.");
     const avail = await Summarizer.availability();
@@ -205,6 +228,7 @@
     const s = await Summarizer.create({
       type: 'key-points', format: 'markdown', length: n > 5 ? 'long' : 'medium',
       outputLanguage: ONDEVICE_LANGS.includes(lang) ? lang : 'en',
+      monitor: downloadMonitor(onProgress),
       sharedContext: n
         ? `A YouTube video whose title promises ${n} items. The key points should be those ${n} items.`
         : 'A YouTube video. Key points should be neutral and specific.'
@@ -260,7 +284,12 @@
         `${transcript ? 'Transcript' : 'Description'}:\n${Info.clip(body, limit)}`;
       let text;
       try {
-        text = onDevice ? await chromeSummarize(system, userText, n, lang) : await apiSummarize(system, userText);
+        const onProgress = (f) => {
+          const pct = Math.round((Number(f) || 0) * 100);
+          sumState.set(id, { status: 'busy', label: pct < 100 ? `Downloading the on-device model\u2026 ${pct}%` : 'Summarizing\u2026' });
+          scheduleScan();
+        };
+        text = onDevice ? await chromeSummarize(system, userText, n, lang, onProgress) : await apiSummarize(system, userText);
       } catch (err) {
         if (onDevice && err && (err.name === 'NotSupportedError' || /language/i.test(String(err.message)))) {
           throw new Error("Chrome's built-in model can't read this video's language. Try 'Your own API'.");
@@ -427,10 +456,21 @@
     if (!card || !card.classList.contains('ht-card')) {
       card = el('div', 'ht-card');
       img.insertAdjacentElement('afterend', card);
+      // The card is absolutely positioned, so its parent must be positioned too. Checked later in one
+      // batched read so we never force a layout per card.
       const p = img.parentElement;
-      if (p && getComputedStyle(p).position === 'static') p.style.position = 'relative';
+      if (p && !p.dataset.htPos) needsPosCheck.push(p);
     }
     return card;
+  }
+
+  const needsPosCheck = [];
+  function fixPositions() {
+    if (!needsPosCheck.length) return;
+    const list = needsPosCheck.splice(0);
+    const statics = list.filter((p) => p.isConnected && getComputedStyle(p).position === 'static'); // reads first
+    list.forEach((p) => { p.dataset.htPos = '1'; });
+    statics.forEach((p) => { p.style.position = 'relative'; }); // then writes
   }
 
   function summaryLabel(sm) {
@@ -539,13 +579,12 @@
       card.style.setProperty('--ht-fs', (total < 160 ? 14 : total < 260 ? 13 : 12) + 'px');
       appendSummary(card, sm);
       card._htSum = sm;
-      fitSummary(card);
-      fitObserver.observe(card);
+      fitObserver.observe(card); // fits on the next frame, batched with other cards
       return;
     }
 
     let desc = '', status = '';
-    if (st && st.status === 'busy') status = 'busy';
+    if (st && st.status === 'busy') status = st.label || 'Summarizing\u2026';
     else if (st && st.status === 'error') desc = '⚠ ' + st.error;
     else if (e.info && e.info.snippet) desc = e.info.snippet;
 
@@ -563,10 +602,10 @@
       chips.forEach((c) => row.appendChild(el('span', 'ht-chip' + (c.cls ? ' ' + c.cls : ''), c.text)));
       card.appendChild(row);
     }
-    if (status === 'busy') {
+    if (status) {
       const d = el('div', 'ht-busy');
       d.appendChild(el('span', 'ht-spin'));
-      d.appendChild(el('span', null, 'Summarizing\u2026'));
+      d.appendChild(el('span', null, status));
       card.appendChild(d);
     } else if (desc) {
       card.appendChild(el('div', 'ht-desc', desc));
@@ -966,7 +1005,7 @@
     } else if (st && st.status === 'busy') {
       const d = el('div', 'ht-busy');
       d.appendChild(el('span', 'ht-spin'));
-      d.appendChild(el('span', null, 'Summarizing\u2026'));
+      d.appendChild(el('span', null, st.label || 'Summarizing\u2026'));
       panel.appendChild(d);
     } else {
       if (canAI) actions.appendChild(button(st && st.status === 'error' ? '↻ Retry summary' : '✨ Summarize this video', () => summarize(id)));
@@ -985,17 +1024,41 @@
     timer = setTimeout(() => { timer = null; scan(); }, 120);
   }
 
-  function scan() {
-    const root = document.documentElement;
-    root.dataset.htMode = settings.enabled ? settings.mode : 'original';
-    if (settings.enabled && settings.hideShorts) root.dataset.htNoShorts = '1'; else delete root.dataset.htNoShorts;
-    if (settings.enabled && settings.hideMixes) root.dataset.htNoMixes = '1'; else delete root.dataset.htNoMixes;
-    const containers = document.querySelectorAll(CONTAINERS);
-    containers.forEach(applyHiding);
-    containers.forEach(processTitle);
-    document.querySelectorAll('img').forEach(processImage);
-    updateBar();
-    syncWatchPanel();
+  // Give the page a chance to respond between batches so long feeds never freeze.
+  const yieldToMain = () => (globalThis.scheduler && scheduler.yield)
+    ? scheduler.yield() : new Promise((r) => setTimeout(r, 0));
+  const BATCH = 60;
+  let scanning = false, scanAgain = false;
+
+  async function scan() {
+    if (scanning) { scanAgain = true; return; }
+    scanning = true;
+    try {
+      do {
+        scanAgain = false;
+        const root = document.documentElement;
+        root.dataset.htMode = settings.enabled ? settings.mode : 'original';
+        if (settings.enabled && settings.hideShorts) root.dataset.htNoShorts = '1'; else delete root.dataset.htNoShorts;
+        if (settings.enabled && settings.hideMixes) root.dataset.htNoMixes = '1'; else delete root.dataset.htNoMixes;
+        const containers = [...document.querySelectorAll(CONTAINERS)];
+        for (let i = 0; i < containers.length; i += BATCH) {
+          containers.slice(i, i + BATCH).forEach((c) => { applyHiding(c); processTitle(c); });
+          if (i + BATCH < containers.length) await yieldToMain();
+        }
+        const imgs = [...document.querySelectorAll('img')].filter((im) => IMG_RE.test(im.getAttribute('src') || ''));
+        for (let i = 0; i < imgs.length; i += BATCH) {
+          imgs.slice(i, i + BATCH).forEach(processImage);
+          fixPositions();
+          if (i + BATCH < imgs.length) await yieldToMain();
+        }
+        updateBar();
+        syncWatchPanel();
+      } while (scanAgain);
+    } catch (err) {
+      console.warn('[Honest Thumbnails]', err);
+    } finally {
+      scanning = false;
+    }
   }
 
   function loadSettings() {
