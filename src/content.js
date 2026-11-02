@@ -452,6 +452,41 @@
     if (sm.source) parent.appendChild(el('div', 'ht-sumsrc', 'From the ' + sm.source));
   }
 
+  // Show only whole bullets that fit; never chop every line. The rest are counted ("+4 more").
+  function fitSummary(card) {
+    const sm = card._htSum;
+    const ul = card.querySelector('.ht-bul');
+    if (!sm || !ul || card.clientHeight < 60) return;
+    const bullets = sm.bullets;
+    const avg = bullets.reduce((a, b) => a + b.length, 0) / (bullets.length || 1);
+    // Two columns only when the card is wide and the items are short names.
+    ul.classList.toggle('cols', bullets.length > 4 && card.clientWidth >= 330 && avg <= 28);
+    ul.classList.remove('many');
+    ul.replaceChildren(...bullets.map((b) => el('li', null, b)));
+    let more = card.querySelector('.ht-more');
+    if (more) more.remove();
+    const src = card.querySelector('.ht-sumsrc');
+    if (src) src.style.display = '';
+    const over = () => card.scrollHeight > card.clientHeight + 1;
+    if (!over()) return;
+    if (src) src.style.display = 'none';
+    if (!over()) return;
+    more = el('div', 'ht-more');
+    card.appendChild(more);
+    let hidden = 0;
+    while (ul.children.length > 1) {
+      ul.lastElementChild.remove();
+      hidden++;
+      more.textContent = `+${hidden} more \u00b7 📋 Copy shows all`;
+      if (!over()) break;
+    }
+    if (!hidden) more.remove();
+  }
+
+  const fitObserver = typeof ResizeObserver !== 'undefined'
+    ? new ResizeObserver((entries) => entries.forEach((en) => fitSummary(en.target)))
+    : { observe() {} };
+
   function fmtSecs(s) {
     if (s < 60) return s + 's';
     const m = Math.floor(s / 60), r = s % 60;
@@ -501,8 +536,11 @@
       card.className = 'ht-card ht-card-sum';
       card.replaceChildren();
       const total = (sm.gist || '').length + sm.bullets.reduce((a, b) => a + b.length, 0);
-      card.style.setProperty('--ht-fs', (total < 160 ? 14 : total < 260 ? 13 : total < 380 ? 12 : 11) + 'px');
+      card.style.setProperty('--ht-fs', (total < 160 ? 14 : total < 260 ? 13 : 12) + 'px');
       appendSummary(card, sm);
+      card._htSum = sm;
+      fitSummary(card);
+      fitObserver.observe(card);
       return;
     }
 
@@ -976,6 +1014,8 @@
     if (saved) for (const id of Object.keys(saved)) {
       const v = saved[id];
       if (v && v.summary && v.summary.v !== 3) delete v.summary; // older summaries used another format
+      // Drop list summaries whose item count came from an older, looser "Top N" check.
+      if (v && v.summary && v.summary.n && v.title && Info.listicleCount(v.title) !== v.summary.n) delete v.summary;
       mem.set(id, v);
     }
     loadSettings();

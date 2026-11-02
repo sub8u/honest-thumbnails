@@ -136,10 +136,14 @@
   const ITEM_WORDS = '(?:things|ways|tips|reasons|mistakes|tricks|facts|rules|steps|signs|habits|ideas|lessons|secrets|hacks|apps|tools|books|movies|games|foods|questions|myths|differences|features|changes|problems|lies|truths|upgrades|places|skills|principles|points|takeaways|examples|strategies|methods|types|mistakes|benefits|reasons|predictions|trends|alternatives|plugins|extensions|shows|songs|gadgets)';
   const NUMTOK = '(\\d{1,2}|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)';
 
+  const RANK_BEFORE = "(?<!\\b(?:among|into|in|world['’]?s|country['’]?s|india['’]?s|enters?|entered|makes?|made|reach(?:es|ed)?|ranks?|ranked|cracks?|joins?|joined)\\s+(?:the\\s+)?)";
+  const NOT_ITEM = '(?!(?:in|of|on|at|for|by|to|and|or|list|rank|ranking|position|percent|globally|worldwide)\\b)';
+
   // If the title promises N things ("5 tips", "Top 7 apps"), return N; otherwise 0.
   function listicleCount(title) {
     const t = String(title || '');
-    let m = new RegExp('\\b(?:top|best|worst)\\s+' + NUMTOK + '\\b', 'i').exec(t) ||
+    // "Top 10 apps" is a list; "ranks among the world's top 10" or "top 10 in the world" is a ranking, not a list.
+    let m = new RegExp(RANK_BEFORE + '\\b(?:top|best|worst)\\s+' + NUMTOK + '\\s+' + NOT_ITEM + '[A-Za-z]', 'i').exec(t) ||
       new RegExp('\\b' + NUMTOK + '\\s+(?:[\\w\'’-]+\\s+){0,2}' + ITEM_WORDS + '\\b', 'i').exec(t);
     if (!m) return 0;
     const raw = m[1].toLowerCase();
