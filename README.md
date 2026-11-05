@@ -34,7 +34,8 @@ Free and open source. No accounts, no analytics, no servers of ours: everything 
 - Hide **Shorts** and **Mixes**, **dim watched** videos, **mute words** in titles or channel names.
 - **Trusted channels:** hover a thumbnail and press ⊘ Skip channel to leave a channel's thumbnails alone.
 - **Today's numbers** in the popup: thumbnails swapped, titles flagged, videos hidden.
-- **Alt+Shift+H** turns everything on or off (change it at `chrome://extensions/shortcuts`).
+- **Pause for 1 hour** from the popup when you want plain YouTube for a while; it switches back on by itself.
+- **Alt+Shift+H** turns everything on or off (change it at `chrome://extensions/shortcuts`). The toolbar icon turns grey while it's off or paused.
 
 ![Real frames mode](docs/real-frames.png)
 

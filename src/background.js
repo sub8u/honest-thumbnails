@@ -40,19 +40,43 @@ async function sponsorInfo(id) {
   return { secs: Math.round(secs), count: segs.length };
 }
 
-// ---- Keyboard shortcut and OFF badge ----
-function updateBadge(enabled) {
-  chrome.action.setBadgeText({ text: enabled ? '' : 'OFF' });
-  chrome.action.setBadgeBackgroundColor({ color: '#777777' });
+// ---- On/off state: green icon when working, grey when off or paused ----
+// A pause ("Pause for 1 hour" in the popup) is stored locally as a timestamp; an alarm clears it when it ends.
+const ICONS_ON = { 16: '/icons/icon16.png', 32: '/icons/icon32.png', 48: '/icons/icon48.png', 128: '/icons/icon128.png' };
+const ICONS_OFF = { 16: '/icons/icon16-off.png', 32: '/icons/icon32-off.png', 48: '/icons/icon48-off.png', 128: '/icons/icon128-off.png' };
+
+async function refreshState() {
+  const { enabled } = await chrome.storage.sync.get({ enabled: true });
+  const { pausedUntil = 0 } = await chrome.storage.local.get('pausedUntil');
+  const paused = pausedUntil > Date.now();
+  if (pausedUntil && !paused) await chrome.storage.local.remove('pausedUntil'); // pause already over
+  const on = enabled && !paused;
+  await chrome.action.setIcon({ path: on ? ICONS_ON : ICONS_OFF });
+  await chrome.action.setBadgeText({ text: '' });
+  const until = paused ? new Date(pausedUntil).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+  await chrome.action.setTitle({ title: on ? 'Honest Thumbnails' : paused ? `Honest Thumbnails: paused until ${until}` : 'Honest Thumbnails: off' });
+  if (paused) chrome.alarms.create('ht-resume', { when: pausedUntil });
+  else chrome.alarms.clear('ht-resume');
 }
-chrome.commands.onCommand.addListener((cmd) => {
+
+chrome.alarms.onAlarm.addListener((a) => {
+  if (a.name === 'ht-resume') chrome.storage.local.remove('pausedUntil');
+});
+
+chrome.commands.onCommand.addListener(async (cmd) => {
   if (cmd !== 'toggle-enabled') return;
-  chrome.storage.sync.get({ enabled: true }, (s) => chrome.storage.sync.set({ enabled: !s.enabled }));
+  const { pausedUntil = 0 } = await chrome.storage.local.get('pausedUntil');
+  if (pausedUntil > Date.now()) { await chrome.storage.local.remove('pausedUntil'); return; } // shortcut ends a pause
+  const { enabled } = await chrome.storage.sync.get({ enabled: true });
+  await chrome.storage.sync.set({ enabled: !enabled });
 });
+
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && changes.enabled) updateBadge(changes.enabled.newValue !== false);
+  if ((area === 'sync' && changes.enabled) || (area === 'local' && changes.pausedUntil)) refreshState();
 });
-chrome.storage.sync.get({ enabled: true }, (s) => updateBadge(s.enabled));
+chrome.runtime.onStartup.addListener(refreshState);
+chrome.runtime.onInstalled.addListener(refreshState);
+refreshState();
 
 async function runLlm({ system, user }) {
   const s = await chrome.storage.sync.get({ aiEndpoint: '', aiModel: '', aiDailyCap: DAILY_DEFAULT });

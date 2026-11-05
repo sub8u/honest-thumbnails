@@ -6,6 +6,7 @@
   "author": "Subrahmanyam KVJ",
   "homepage_url": "https://github.com/sub8u/honest-thumbnails",
   "permissions": [
+    "alarms",
     "storage"
   ],
   "optional_host_permissions": [

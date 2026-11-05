@@ -13,8 +13,13 @@
       <h1 class="wordmark"><em>Honest</em> Thumbnails</h1>
       <p id="stats">Nothing swapped yet today</p>
     </div>
+    <button type="button" class="pausebtn" id="pause" title="Pause for 1 hour: show YouTube as usual, then switch back on by itself" aria-label="Pause for 1 hour">1 hr</button>
     <input type="checkbox" class="sw big" id="enabled" title="Turn everything on or off">
   </header>
+  <div class="paused" id="pausedBar" hidden>
+    <span><b>Paused</b> until <span id="pausedUntil"></span></span>
+    <button type="button" id="resume">Resume now</button>
+  </div>
 
   <main id="body">
     <div class="modes" role="radiogroup" aria-label="Instead of the thumbnail, show">

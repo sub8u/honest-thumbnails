@@ -1061,15 +1061,23 @@
     }
   }
 
+  // "Pause for 1 hour" lives in local storage (this computer only) and simply reads as "off" until it ends.
+  let resumeTimer = null;
   function loadSettings() {
     chrome.storage.sync.get(DEFAULTS, (s) => {
-      settings = { ...DEFAULTS, ...s };
-      scan();
+      chrome.storage.local.get({ pausedUntil: 0 }, (l) => {
+        const left = (Number(l && l.pausedUntil) || 0) - Date.now();
+        settings = { ...DEFAULTS, ...s };
+        if (left > 0) settings.enabled = false;
+        clearTimeout(resumeTimer);
+        if (left > 0) resumeTimer = setTimeout(loadSettings, left + 500);
+        scan();
+      });
     });
   }
 
-  chrome.storage.onChanged.addListener((_c, area) => {
-    if (area === 'sync') loadSettings();
+  chrome.storage.onChanged.addListener((c, area) => {
+    if (area === 'sync' || (area === 'local' && c.pausedUntil)) loadSettings();
   });
 
   chrome.storage.local.get('ht_cache', (r) => {

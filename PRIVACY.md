@@ -13,6 +13,7 @@ by you, where something leaves it.
 - **Your AI API key:** only if you choose your own AI service in Settings.
 - **A cache of video details and summaries:** the title, channel, view count, chapters and summary of up to your 400
   most recent videos, so the extension doesn't fetch or summarize the same video twice.
+- **A pause end time:** if you press Pause, the time it should switch back on.
 - **Counters:** how many summaries you've made today (to enforce the daily limit you set) and the popup's daily counts
   of thumbnails swapped, titles flagged and videos hidden. These are numbers only.
 
@@ -20,7 +21,7 @@ by you, where something leaves it.
 
 - Settings are stored with Chrome's sync storage, so they follow your Chrome profile across your devices. Chrome sync
   is run by Google under your Google account; the developer has no access to it.
-- Your API key, the cache and the counters are stored only on this device, in Chrome's local extension storage.
+- Your API key, the cache, the pause end time and the counters are stored only on this device, in Chrome's local extension storage.
   The API key is never synced.
 
 ## How data is used

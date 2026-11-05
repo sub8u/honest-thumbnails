@@ -4,6 +4,7 @@ const DEFAULTS = {
   dimWatched: false, mutedWords: []
 };
 const $ = (id) => document.getElementById(id);
+let pausedUntil = 0, lastSettings = null;
 const TOGGLES = ['enabled', 'calmTitles', 'clickbaitFlag', 'hoverDetails', 'watchPanel', 'hideShorts', 'hideMixes', 'dimWatched'];
 
 function plural(n, one, many) { return `${n} ${n === 1 ? one : many}`; }
@@ -12,7 +13,12 @@ function render(s) {
   TOGGLES.forEach((k) => { $(k).checked = !!s[k]; });
   document.querySelectorAll('input[name=frame]').forEach((r) => { r.checked = Number(r.value) === Number(s.frame); });
   document.querySelectorAll('input[name=mode]').forEach((r) => { r.checked = r.value === s.mode; });
-  $('body').classList.toggle('off', !s.enabled);
+  lastSettings = s;
+  const until = pausedUntil > Date.now() ? pausedUntil : 0;
+  $('body').classList.toggle('off', !s.enabled || !!until);
+  $('pause').hidden = !s.enabled || !!until;
+  $('pausedBar').hidden = !(s.enabled && until);
+  if (until) $('pausedUntil').textContent = new Date(until).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   $('frameRow').hidden = s.mode !== 'frame';
   $('hoverRow').hidden = s.mode !== 'text';
   $('visibleBox').hidden = !(s.aiProvider !== 'off' && s.mode === 'text');
@@ -55,11 +61,19 @@ function openSettings(hash) {
   window.close();
 }
 
-chrome.storage.sync.get(DEFAULTS, (s) => {
+loadPause(() => chrome.storage.sync.get(DEFAULTS, (s) => {
   render(s);
   TOGGLES.forEach((k) => $(k).addEventListener('change', (e) => save({ [k]: e.target.checked })));
   document.querySelectorAll('input[name=frame]').forEach((r) => r.addEventListener('change', () => save({ frame: Number(r.value) })));
   document.querySelectorAll('input[name=mode]').forEach((r) => r.addEventListener('change', () => save({ mode: r.value })));
+}));
+function loadPause(cb) {
+  chrome.storage.local.get({ pausedUntil: 0 }, (r) => { pausedUntil = Number(r.pausedUntil) || 0; cb && cb(); });
+}
+$('pause').addEventListener('click', () => chrome.storage.local.set({ pausedUntil: Date.now() + 60 * 60 * 1000 }));
+$('resume').addEventListener('click', () => chrome.storage.local.remove('pausedUntil'));
+chrome.storage.onChanged.addListener((c, area) => {
+  if (area === 'local' && c.pausedUntil) loadPause(() => lastSettings && render(lastSettings));
 });
 $('openOptions').addEventListener('click', (e) => { e.preventDefault(); openSettings(''); });
 $('openFilters').addEventListener('click', (e) => { e.preventDefault(); openSettings('#filters'); });
