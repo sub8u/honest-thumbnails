@@ -229,3 +229,35 @@ input.num { width: 90px; margin: 0; flex: none; text-align: right; }
 
 @media (max-width: 780px) { .explain { grid-template-columns: 1fr; } .adv, .testrow { padding-left: 0; } }
 .card > .row:has(+ .row[hidden]:last-child) { border-bottom: 0; }
+
+/* ---- Welcome ---- */
+.welcome {
+  position: relative; margin-bottom: 40px; padding: 26px 26px 22px; border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(70% 120% at 100% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    var(--panel);
+  box-shadow: 0 0 0 1px var(--line), 0 10px 30px rgba(0,0,0,.06);
+}
+.whead { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.kicker { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.wtitle { margin: 6px 0 6px; font: italic 400 34px/1.05 "Instrument Serif", Georgia, serif; text-transform: none; letter-spacing: 0; color: var(--ink); }
+.wlede { margin: 0; color: var(--muted); max-width: 46ch; }
+.wact { display: flex; gap: 8px; flex: none; }
+.btnlink {
+  display: inline-block; padding: 8px 16px; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+  font-weight: 600; font-size: 13px; white-space: nowrap;
+}
+.btnlink:hover { text-decoration: none; filter: brightness(1.06); }
+.wsteps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.wsteps li { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 12px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line); }
+.wsteps b { font-size: 13.5px; }
+.wsteps small { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.45; }
+.wicon { height: 34px; display: flex; align-items: center; gap: 4px; }
+.wicon.pin img { width: 30px; height: 30px; border-radius: 8px; }
+.wicon.modes i { width: 26px; height: 17px; border-radius: 4px; display: block; box-shadow: 0 0 0 1px var(--line); }
+.wicon.modes .m1 { background: linear-gradient(180deg, #9cc7e6, #e9d9b8); }
+.wicon.modes .m2 { background: linear-gradient(155deg, #1f2a23, #0d110e); box-shadow: inset 2px 0 0 #4ade80; }
+.wicon.modes .m3 { background: radial-gradient(circle at 30% 40%, #ffe14a, #ff3d2e 60%, #b3002d); }
+.wicon.peek kbd { font-size: 12px; padding: 3px 8px; }
+.wfoot { margin: 16px 0 0; font-size: 12.5px; color: var(--muted); }
+@media (max-width: 780px) { .whead { flex-direction: column; } .wsteps { grid-template-columns: 1fr; } }

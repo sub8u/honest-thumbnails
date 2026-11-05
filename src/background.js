@@ -75,7 +75,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if ((area === 'sync' && changes.enabled) || (area === 'local' && changes.pausedUntil)) refreshState();
 });
 chrome.runtime.onStartup.addListener(refreshState);
-chrome.runtime.onInstalled.addListener(refreshState);
+chrome.runtime.onInstalled.addListener((details) => {
+  refreshState();
+  // First install only: show a short welcome at the top of the settings page.
+  if (details.reason !== 'install') return;
+  chrome.storage.local.get({ welcomed: false }, ({ welcomed }) => {
+    if (welcomed) return; // never twice, even if Chrome reports another install
+    chrome.storage.local.set({ welcomed: true });
+    chrome.tabs.create({ url: chrome.runtime.getURL('options/options.html#welcome') });
+  });
+});
 refreshState();
 
 // Turns provider errors into something a person can act on.

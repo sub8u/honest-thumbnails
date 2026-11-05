@@ -342,3 +342,17 @@ const io = new IntersectionObserver((entries) => {
 }, { rootMargin: '-20% 0px -70% 0px' });
 document.querySelectorAll('.sec').forEach((s) => io.observe(s));
 links[0].classList.add('on');
+
+// ============================================================
+// Welcome panel: shown after a fresh install (#welcome) until dismissed
+// ============================================================
+if (location.hash === '#welcome') {
+  $('welcome').hidden = false;
+  links.forEach((a) => a.classList.remove('on'));
+}
+$('welcomeDone').addEventListener('click', () => {
+  $('welcome').hidden = true;
+  history.replaceState(null, '', location.pathname);
+  window.scrollTo({ top: 0 });
+  links[0].classList.add('on');
+});

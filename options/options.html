@@ -27,6 +27,39 @@
     </nav>
 
     <main>
+      <!-- Welcome (shown after a fresh install, or when the page is opened with #welcome) -->
+      <section id="welcome" class="welcome" hidden>
+        <div class="whead">
+          <div>
+            <p class="kicker">You’re set up</p>
+            <h2 class="wtitle">YouTube, minus the clickbait.</h2>
+            <p class="wlede">Open YouTube and the designed thumbnails are already gone: you’ll see a real frame from each video instead.</p>
+          </div>
+          <div class="wact">
+            <a class="btnlink" href="https://www.youtube.com/" target="_blank" rel="noopener">Open YouTube</a>
+            <button type="button" class="ghost" id="welcomeDone">Got it</button>
+          </div>
+        </div>
+        <ol class="wsteps">
+          <li>
+            <span class="wicon pin" aria-hidden="true"><img src="../ui/logo.png" alt=""></span>
+            <div><b>Pin the green <i class="serif">h</i></b>
+              <small>Click the puzzle-piece icon next to your address bar, then the pin beside Honest Thumbnails. That’s where you switch modes, pause, and see today’s numbers.</small></div>
+          </li>
+          <li>
+            <span class="wicon modes" aria-hidden="true"><i class="m1"></i><i class="m2"></i><i class="m3"></i></span>
+            <div><b>Pick a look</b>
+              <small><b>Real frame</b> shows a moment from the video. <b>Title card</b> shows the title, channel and facts, and can summarize. <b>Original</b> leaves YouTube alone.</small></div>
+          </li>
+          <li>
+            <span class="wicon peek" aria-hidden="true"><kbd>Alt</kbd></span>
+            <div><b>Peek any time</b>
+              <small>Hold <kbd>Alt</kbd> over a thumbnail to see the original for a moment. <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> turns everything on or off.</small></div>
+          </li>
+        </ol>
+        <p class="wfoot">Optional: set up <a href="#summaries">summaries</a> below, or mute words and trust channels you like. Everything stays on your computer.</p>
+      </section>
+
       <!-- Summaries -->
       <section id="summaries" class="sec">
         <h2 class="title">Summaries</h2>

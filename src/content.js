@@ -14,6 +14,8 @@
   const IMG_RE = /^https:\/\/i\d*\.ytimg\.com\/vi(?:_webp)?\/([\w-]{11})\/(\w+)\.(?:jpg|webp)/;
   // Frame names this extension requests: mq1..mq3 (preferred), hq1..hq3 (fallback).
   const OURS_RE = /^(mq|hq)([123])$/;
+  const CHAPTER_SEL = 'ytd-expandable-metadata-renderer, ytd-macro-markers-list-renderer, ytd-macro-markers-list-item-renderer, ' +
+    'ytd-horizontal-card-list-renderer, [class*="macro-markers"]';
 
   const CONTAINERS = [
     'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
@@ -451,19 +453,36 @@
     return n;
   }
 
+  // The card goes inside the visible thumbnail box (the rounded frame), right after the branch that holds
+  // the image, so it covers the whole thumbnail on every page layout while YouTube's own overlays
+  // (duration, progress bar) stay on top of it.
+  const THUMB_BOX = 'a#thumbnail, yt-thumbnail-view-model, .yt-lockup-view-model__content-image, ytd-thumbnail';
+  function cardSlot(img) {
+    const box = img.closest(THUMB_BOX);
+    if (!box) return { parent: img.parentElement, after: img };
+    let branch = img;
+    while (branch.parentElement && branch.parentElement !== box) branch = branch.parentElement;
+    return { parent: box, after: branch };
+  }
+  function findCard(img) {
+    const next = cardSlot(img).after.nextElementSibling;
+    return next && next.classList.contains('ht-card') ? next : null;
+  }
+
   function removeCard(img) {
-    const next = img.nextElementSibling;
-    if (next && next.classList.contains('ht-card')) next.remove();
+    const card = findCard(img);
+    if (card) card.remove();
   }
 
   function getCard(img) {
-    let card = img.nextElementSibling;
-    if (!card || !card.classList.contains('ht-card')) {
+    let card = findCard(img);
+    if (!card) {
       card = el('div', 'ht-card');
-      img.insertAdjacentElement('afterend', card);
+      const slot = cardSlot(img);
+      slot.after.insertAdjacentElement('afterend', card);
       // The card is absolutely positioned, so its parent must be positioned too. Checked later in one
       // batched read so we never force a layout per card.
-      const p = img.parentElement;
+      const p = slot.parent;
       if (p && !p.dataset.htPos) needsPosCheck.push(p);
     }
     return card;
@@ -815,6 +834,8 @@
     if (!container || isShort(container)) return;
 
     const [, id, name] = m;
+    // Chapter previews ("hqdefault_4866.jpg") and the chapters row are not the video's thumbnail.
+    if (/_\d+$/.test(name) || img.closest(CHAPTER_SEL)) return;
     const o = OURS_RE.exec(name);
 
     if (!o) {

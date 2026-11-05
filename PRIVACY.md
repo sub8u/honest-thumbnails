@@ -14,6 +14,7 @@ by you, where something leaves it.
 - **A cache of video details and summaries:** the title, channel, view count, chapters and summary of up to your 400
   most recent videos, so the extension doesn't fetch or summarize the same video twice.
 - **A pause end time:** if you press Pause, the time it should switch back on.
+- **A welcome flag:** a note that the welcome page has been shown, so it opens only once.
 - **Counters:** how many summaries you've made today (to enforce the daily limit you set) and the popup's daily counts
   of thumbnails swapped, titles flagged and videos hidden. These are numbers only.
 

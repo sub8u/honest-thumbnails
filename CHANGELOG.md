@@ -10,6 +10,8 @@
   Cards scale the text to the space and use two columns for short items; nothing is hidden or cut off.
   Older, longer summaries are cleared and regenerate in the new format.
 - Fix: stray hyphens after bullet points ("• - point") in on-device summaries, including ones already saved.
+- New: a short welcome panel opens on first install (pin the icon, the three looks, Peek).
+- Fix: title cards now cover thumbnails on the search page, and chapter previews in search results are left alone.
 - Settings → Summaries rebuilt: where summaries appear, the three sources compared on cost, privacy and needs,
   a live check of whether Chrome's built-in AI runs on this computer (with Download now), guided setup for
   your own AI service, and **Save and test** with plain-English errors. Test calls don't count toward the daily limit.

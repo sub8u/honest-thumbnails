@@ -53,7 +53,7 @@ Free and open source. No accounts, no analytics, no servers of ours: everything 
 1. Download or clone this repository.
 2. Open `chrome://extensions` and turn on **Developer mode** (top right).
 3. Click **Load unpacked** and choose the `honest-thumbnails` folder.
-4. Pin the extension, open YouTube, and pick a mode from the toolbar icon.
+4. A short welcome page opens. Pin the green *h*, open YouTube, and pick a look from the toolbar icon.
 
 ## Privacy
 
