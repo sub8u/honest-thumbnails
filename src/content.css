@@ -93,7 +93,6 @@ html[data-ht-mode="text"] ytd-moving-thumbnail-renderer { display: none !importa
 .ht-card .ht-bul li::before { content: ''; position: absolute; left: 3px; top: .55em; width: 5px; height: 5px; border-radius: 50%; background: var(--ht-accent); }
 .ht-card .ht-bul.cols { column-count: 2; column-gap: 18px; }
 .ht-card .ht-bul.cols li { break-inside: avoid; }
-.ht-card .ht-more { color: #a9a9a4; font-size: 11px; }
 .ht-card .ht-sumsrc { color: #8d8d95; font-size: 10px; }
 
 /* Visible while the model is thinking, even when the mouse leaves. */
@@ -166,3 +165,5 @@ html[dark] .ht-watch .ht-werr { color: #ff8a80; }
 }
 /* Never squash the parts of a card; overflow is handled by dropping whole bullets. */
 .ht-card > * { flex-shrink: 0; }
+/* Last-resort fit: one line per point (only when even the smallest text size can't hold the summary). */
+.ht-card .ht-bul.tight li { -webkit-line-clamp: 1; margin-bottom: 1px; }

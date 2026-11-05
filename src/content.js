@@ -157,21 +157,24 @@
     } catch (e) { return ''; }
   }
 
+  // Summaries are written to fit a thumbnail-sized card in full: a short gist and a few short lines.
   function systemPrompt(n, lang) {
     const common =
       'You summarize YouTube videos neutrally and specifically. Never copy hype, ALL CAPS or clickbait wording. ' +
+      'Be brief: this appears on a small card. ' +
       (lang && lang !== 'en' ? `Write the summary in ${Info.langName(lang)}. ` : '');
     if (n) {
       return common +
-        `The title promises ${n} items. Reply in this exact format: first line = a gist of at most 14 words. ` +
-        `Then exactly ${n} lines, each starting with "- ", listing the ${n} items in the order the video presents them, ` +
-        'each as a short name plus a few words of detail (max 14 words). If the video clearly gives a different number, list what it actually gives. ' +
-        'No other text.';
+        `The title promises ${n} items. Reply in this exact format: first line = a gist of at most 10 words. ` +
+        `Then exactly ${n} lines, each starting with "- ", naming the ${n} items in the order the video presents them. ` +
+        'Each line is only the item\u2019s name, 2 to 5 words, no explanation. ' +
+        'If the video clearly gives a different number, list what it actually gives. No other text.';
     }
     return common +
-      'Reply in this exact format: first line = one sentence (max 20 words) saying what the video is about. ' +
-      'Then 3 to 5 lines, each starting with "- ", each one key point or takeaway (max 14 words). No other text.';
+      'Reply in this exact format: first line = one sentence of at most 12 words saying what the video is about. ' +
+      'Then exactly 3 lines, each starting with "- ", each a key point of at most 8 words. No other text.';
   }
+
 
   const ONDEVICE_LANGS = ['en', 'es', 'ja'];
   const PROMPT_LANGS = ['en', 'es', 'ja', 'de', 'fr']; // Chrome's Prompt API; the older Summarizer API keeps ONDEVICE_LANGS
@@ -183,7 +186,7 @@
       type: 'object',
       properties: {
         gist: { type: 'string' },
-        bullets: { type: 'array', items: { type: 'string' }, minItems: n || 3, maxItems: n || 5 }
+        bullets: { type: 'array', items: { type: 'string' }, minItems: n || 3, maxItems: n || 3 }
       },
       required: ['gist', 'bullets']
     };
@@ -247,7 +250,7 @@
   }
 
   function setChapterSummary(e, bullets, n) {
-    e.summary = { gist: '', bullets: bullets.slice(0, 12), n: n || 0, kind: 'chapters', source: 'chapters', v: 3 };
+    e.summary = { gist: '', bullets: bullets.slice(0, 12), n: n || 0, kind: 'chapters', source: 'chapters', v: 4 };
     e.t = Date.now();
     persist();
   }
@@ -299,7 +302,7 @@
       }
       const parsed = Info.parseSummary(text, 12);
       if (!parsed.gist && !parsed.bullets.length) throw new Error('The model returned an empty answer.');
-      e.summary = { gist: parsed.gist, bullets: parsed.bullets, n, source, v: 3 };
+      e.summary = { gist: parsed.gist, bullets: parsed.bullets.slice(0, n || 4), n, source, v: 4 };
       e.t = Date.now();
       persist();
       sumState.delete(id);
@@ -493,35 +496,31 @@
     if (sm.source) parent.appendChild(el('div', 'ht-sumsrc', 'From the ' + sm.source));
   }
 
-  // Show only whole bullets that fit; never chop every line. The rest are counted ("+4 more").
+  // Fit the whole summary on the card: try two columns for short items, then step the text size down,
+  // then drop the small extras (source line, gist of a list). Nothing is hidden behind a "more" note.
+  const FIT_SIZES = [15, 14, 13, 12, 11, 10];
   function fitSummary(card) {
     const sm = card._htSum;
     const ul = card.querySelector('.ht-bul');
-    if (!sm || !ul || card.clientHeight < 60) return;
-    const bullets = sm.bullets;
+    if (!sm || card.clientHeight < 60) return;
+    const bullets = sm.bullets || [];
     const avg = bullets.reduce((a, b) => a + b.length, 0) / (bullets.length || 1);
-    // Two columns only when the card is wide and the items are short names.
-    ul.classList.toggle('cols', bullets.length > 4 && card.clientWidth >= 330 && avg <= 28);
-    ul.classList.remove('many');
-    ul.replaceChildren(...bullets.map((b) => el('li', null, b)));
-    let more = card.querySelector('.ht-more');
-    if (more) more.remove();
     const src = card.querySelector('.ht-sumsrc');
-    if (src) src.style.display = '';
-    const over = () => card.scrollHeight > card.clientHeight + 1;
-    if (!over()) return;
-    if (src) src.style.display = 'none';
-    if (!over()) return;
-    more = el('div', 'ht-more');
-    card.appendChild(more);
-    let hidden = 0;
-    while (ul.children.length > 1) {
-      ul.lastElementChild.remove();
-      hidden++;
-      more.textContent = `+${hidden} more \u00b7 📋 Copy shows all`;
-      if (!over()) break;
+    const gist = card.querySelector('.ht-gist');
+    if (ul) {
+      ul.classList.remove('many', 'tight');
+      ul.classList.toggle('cols', bullets.length >= 4 && card.clientWidth >= 280 && avg <= 32);
     }
-    if (!hidden) more.remove();
+    if (src) src.style.display = '';
+    if (gist) gist.style.display = '';
+    const over = () => card.scrollHeight > card.clientHeight + 1;
+    for (const px of FIT_SIZES) {
+      card.style.setProperty('--ht-fs', px + 'px');
+      if (!over()) return;
+    }
+    if (src) { src.style.display = 'none'; if (!over()) return; }
+    if (gist && sm.n && bullets.length) { gist.style.display = 'none'; if (!over()) return; } // a list speaks for itself
+    if (ul) ul.classList.add('tight'); // last resort: one line per point
   }
 
   const fitObserver = typeof ResizeObserver !== 'undefined'
@@ -576,8 +575,6 @@
       card.dataset.htSig = sig;
       card.className = 'ht-card ht-card-sum';
       card.replaceChildren();
-      const total = (sm.gist || '').length + sm.bullets.reduce((a, b) => a + b.length, 0);
-      card.style.setProperty('--ht-fs', (total < 160 ? 14 : total < 260 ? 13 : 12) + 'px');
       appendSummary(card, sm);
       card._htSum = sm;
       fitObserver.observe(card); // fits on the next frame, batched with other cards
@@ -1085,7 +1082,7 @@
     const saved = r && r.ht_cache;
     if (saved) for (const id of Object.keys(saved)) {
       const v = saved[id];
-      if (v && v.summary && v.summary.v !== 3) delete v.summary; // older summaries used another format
+      if (v && v.summary && v.summary.v !== 4) delete v.summary; // older summaries were longer than a card can show
       // Drop list summaries whose item count came from an older, looser "Top N" check.
       if (v && v.summary && v.summary.n && v.title && Info.listicleCount(v.title) !== v.summary.n) delete v.summary;
       mem.set(id, v);
