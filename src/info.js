@@ -161,7 +161,8 @@
     for (const l of lines) {
       const m = BUL.exec(l);
       if (m) {
-        const b = m[1].replace(/\*\*/g, '').trim();
+        // Models sometimes double up markers ("- - point", "• 1. point"); keep only the text.
+        const b = m[1].replace(/\*\*/g, '').replace(/^(?:(?:[-*•–]|\d{1,2}[.)])\s+)+/, '').trim();
         if (b) bullets.push(b.length > 140 ? b.slice(0, 139).replace(/\s+\S*$/, '') + '…' : b);
       } else if (!bullets.length) {
         gistParts.push(l.replace(/\*\*/g, ''));

@@ -216,7 +216,8 @@
       try {
         const j = JSON.parse(await session.prompt(userText, { responseConstraint: summarySchema(n) }));
         if (j && (j.gist || (j.bullets && j.bullets.length))) {
-          return [String(j.gist || '').trim(), ...(j.bullets || []).map((b) => '- ' + String(b).trim())].join('\n');
+          const clean = (b) => String(b).replace(/^(?:(?:[-*•–]|\d{1,2}[.)])\s*)+/, '').trim();
+          return [String(j.gist || '').trim(), ...(j.bullets || []).map(clean).filter(Boolean).map((b) => '- ' + b)].join('\n');
         }
       } catch (e) { /* older Chrome or invalid JSON: ask again in plain text */ }
       return (await session.prompt(userText)).trim();
@@ -1083,6 +1084,9 @@
     if (saved) for (const id of Object.keys(saved)) {
       const v = saved[id];
       if (v && v.summary && v.summary.v !== 4) delete v.summary; // older summaries were longer than a card can show
+      if (v && v.summary && Array.isArray(v.summary.bullets)) { // tidy points saved with a doubled "- " marker
+        v.summary.bullets = v.summary.bullets.map((b) => String(b).replace(/^(?:(?:[-*•–]|\d{1,2}[.)])\s+)+/, '').trim()).filter(Boolean);
+      }
       // Drop list summaries whose item count came from an older, looser "Top N" check.
       if (v && v.summary && v.summary.n && v.title && Info.listicleCount(v.title) !== v.summary.n) delete v.summary;
       mem.set(id, v);

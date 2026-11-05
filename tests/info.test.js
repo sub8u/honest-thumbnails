@@ -58,4 +58,9 @@ assert.strictEqual(I.chapterItems([], 3), null);
 assert.strictEqual(I.langName('es'), 'Spanish');
 assert.strictEqual(I.summaryText('T', { gist: 'G', bullets: ['a', 'b'] }, 'abc'), 'T\nG\n- a\n- b\nhttps://youtu.be/abc');
 assert.deepStrictEqual(info.chapterTitles, ['Intro', 'Cables', 'Towers', 'Wrap up']);
+{
+  const r = I.parseSummary('A Learjet crashed in Florida.\n- Co-pilot reported light ice\n- - The pilot declared a Mayday\n- • 2. Investigation is ongoing');
+  assert.deepStrictEqual(r.bullets, ['Co-pilot reported light ice', 'The pilot declared a Mayday', 'Investigation is ongoing']);
+  assert.strictEqual(I.parseSummary('Gist\n- -5% inflation explained').bullets[0], '-5% inflation explained');
+}
 console.log('info: all tests passed');
