@@ -174,6 +174,7 @@
   }
 
   const ONDEVICE_LANGS = ['en', 'es', 'ja'];
+  const PROMPT_LANGS = ['en', 'es', 'ja', 'de', 'fr']; // Chrome's Prompt API; the older Summarizer API keeps ONDEVICE_LANGS
 
   // Preferred on-device path: the Prompt API (follows our format). Falls back to the Summarizer API.
   // Ask for an exact shape (gist + bullets) so the model can't pad or wander; falls back to plain text.
@@ -194,7 +195,7 @@
 
   async function chromePrompt(system, userText, lang, n, onProgress) {
     if (!('LanguageModel' in self)) return null;
-    const out = ONDEVICE_LANGS.includes(lang) ? lang : 'en';
+    const out = PROMPT_LANGS.includes(lang) ? lang : 'en';
     const io = {
       expectedInputs: [{ type: 'text', languages: [...new Set(['en', out])] }],
       expectedOutputs: [{ type: 'text', languages: [out] }]

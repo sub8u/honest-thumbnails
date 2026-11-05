@@ -78,7 +78,17 @@ chrome.runtime.onStartup.addListener(refreshState);
 chrome.runtime.onInstalled.addListener(refreshState);
 refreshState();
 
-async function runLlm({ system, user }) {
+// Turns provider errors into something a person can act on.
+function friendlyError(status, detail) {
+  const d = detail ? ` (${detail.slice(0, 120)})` : '';
+  if (status === 401 || status === 403) return 'The API key was rejected. Check that it was copied in full and is still active.' + d;
+  if (status === 404) return 'The endpoint or model name was not found. Check the model name against your provider\u2019s list.' + d;
+  if (status === 429) return 'Your provider says you\u2019re out of credit or sending too many requests.' + d;
+  if (status >= 500) return 'Your provider had a problem on its side. Try again in a minute.' + d;
+  return `Your provider returned error ${status}.` + d;
+}
+
+async function runLlm({ system, user, test }) {
   const s = await chrome.storage.sync.get({ aiEndpoint: '', aiModel: '', aiDailyCap: DAILY_DEFAULT });
   const { aiKey = '' } = await chrome.storage.local.get('aiKey');
   if (!s.aiEndpoint || !s.aiModel) throw new Error('Set your endpoint and model in the extension options.');
@@ -86,30 +96,40 @@ async function runLlm({ system, user }) {
   const today = new Date().toISOString().slice(0, 10);
   const { aiUsage = { day: today, n: 0 } } = await chrome.storage.local.get('aiUsage');
   const usage = aiUsage.day === today ? aiUsage : { day: today, n: 0 };
-  if (usage.n >= s.aiDailyCap) throw new Error(`Daily limit of ${s.aiDailyCap} summaries reached.`);
+  if (!test && usage.n >= s.aiDailyCap) throw new Error(`Daily limit of ${s.aiDailyCap} summaries reached.`);
 
   const url = s.aiEndpoint.replace(/\/+$/, '') + '/chat/completions';
   const headers = { 'Content-Type': 'application/json' };
   if (aiKey) headers.Authorization = 'Bearer ' + aiKey;
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: s.aiModel,
-      messages: [{ role: 'system', content: system }, { role: 'user', content: user }]
-    })
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: s.aiModel,
+        messages: [{ role: 'system', content: system }, { role: 'user', content: user }]
+      })
+    });
+  } catch (e) {
+    const local = /localhost|127\.0\.0\.1/.test(url);
+    throw new Error(local
+      ? 'Couldn\u2019t reach your local model. Make sure it\u2019s running (Ollama: start it with OLLAMA_ORIGINS=chrome-extension://*).'
+      : 'Couldn\u2019t reach the endpoint. Check the address and your internet connection.');
+  }
   if (!res.ok) {
     let detail = '';
     try { detail = (await res.json()).error.message || ''; } catch (e) { /* ignore */ }
-    throw new Error(`Provider error ${res.status}${detail ? ': ' + detail.slice(0, 120) : ''}`);
+    throw new Error(friendlyError(res.status, detail));
   }
   const data = await res.json();
   const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
   if (!text) throw new Error('The provider returned an empty answer.');
 
-  usage.n += 1;
-  await chrome.storage.local.set({ aiUsage: usage });
+  if (!test) {
+    usage.n += 1;
+    await chrome.storage.local.set({ aiUsage: usage });
+  }
   return text.trim();
 }

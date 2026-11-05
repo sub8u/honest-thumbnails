@@ -7,6 +7,11 @@
 - Muted words and trusted channels now live in Settings.
 - Fix: long summaries no longer push the card's heading out of view.
 - Fix: summary cards show whole bullets that fit (plus "+N more") instead of chopping every line mid-word.
+- Settings → Summaries rebuilt: where summaries appear, the three sources compared on cost, privacy and needs,
+  a live check of whether Chrome's built-in AI runs on this computer (with Download now), guided setup for
+  your own AI service, and **Save and test** with plain-English errors. Test calls don't count toward the daily limit.
+- Updated provider presets (GPT-5.4 nano, Gemini 3.5 Flash-Lite); the old Gemini 2.0 Flash preset was retired by Google.
+- On-device summaries can now be written in German and French as well.
 - New: Pause for 1 hour from the popup; switches back on by itself (uses Chrome alarms).
 - The toolbar icon turns grey when the extension is off or paused, replacing the "OFF" badge.
 - New icon: an italic *h* on green, replacing the play-button icon that resembled YouTube's.

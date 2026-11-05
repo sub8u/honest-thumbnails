@@ -26,6 +26,7 @@ Free and open source. No accounts, no analytics, no servers of ours: everything 
 **Summaries (optional)**
 - **✨ Summarize:** a one-line gist plus key points. If the title promises "5 tips" or "Top 7 apps", it lists those items.
   Uses Chrome's built-in on-device model, or *your own* API key or local model (OpenAI, Gemini, OpenRouter, Ollama, LM Studio).
+  Settings shows whether the built-in model can run on your computer, and **Save and test** checks your own service.
 - **📑 Chapters as a free summary:** no AI needed when a video has chapters.
 - **Video-page panel:** the same summary, chapters and a copy button under the player.
 - **Summarize visible:** one confirmed click summarizes up to 10 videos on screen, within your daily limit.

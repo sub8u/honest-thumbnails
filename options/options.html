@@ -30,50 +30,137 @@
       <!-- Summaries -->
       <section id="summaries" class="sec">
         <h2 class="title">Summaries</h2>
-        <p class="lede">With the title card on, hover a video and press <b>✨ Summarize</b> for a gist and key points.
-          Nothing leaves your device unless you choose your own API. Results are cached locally.</p>
+        <p class="lede">Optional. A one-line gist and the key points of a video, so you can decide before you click.</p>
 
-        <div class="providers" role="radiogroup" aria-label="Summary provider">
+        <div class="card explain">
+          <div class="demo" aria-hidden="true">
+            <span class="dlabel">✨ The 3 items</span>
+            <span class="dgist">Three budget phones worth buying this year.</span>
+            <span class="dli">Pixel A-series for the camera</span>
+            <span class="dli">Galaxy A-series for the screen</span>
+            <span class="dli">Moto G for battery life</span>
+          </div>
+          <div class="where">
+            <b>Where you’ll see them</b>
+            <ul>
+              <li><b>In your feed:</b> hover a title card and press <span class="kbdish">✨ Summarize</span>.
+                <span class="note" id="modeNote"></span></li>
+              <li><b>On a video page:</b> a Summarize button under the player.</li>
+              <li><b>No AI needed:</b> videos with chapters get a <span class="kbdish">📑 Chapters</span> view either way.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="sub"><span class="num">1</span>Where summaries come from</h3>
+        <div class="providers" role="radiogroup" aria-label="Where summaries come from">
           <label class="prov">
             <input type="radio" name="aiProvider" value="off">
-            <span class="pbody"><b>Off</b><small>No AI. Chapters still work as a free summary.</small></span>
+            <span class="pbody">
+              <b>Off</b>
+              <small>No AI summaries.</small>
+              <dl>
+                <dt>Cost</dt><dd>Free</dd>
+                <dt>Privacy</dt><dd>Nothing is sent</dd>
+                <dt>Needs</dt><dd>Nothing</dd>
+              </dl>
+            </span>
           </label>
           <label class="prov">
             <input type="radio" name="aiProvider" value="chrome">
-            <span class="pbody"><b>On-device</b><small>Chrome’s built-in model. Free and private; needs a recent Chrome and a capable computer.</small></span>
+            <span class="pbody">
+              <b>On this computer</b>
+              <small>Chrome’s built-in AI (Gemini Nano).</small>
+              <dl>
+                <dt>Cost</dt><dd>Free</dd>
+                <dt>Privacy</dt><dd>Never leaves this computer</dd>
+                <dt>Needs</dt><dd>Desktop Chrome and a fairly powerful computer</dd>
+              </dl>
+            </span>
           </label>
           <label class="prov">
             <input type="radio" name="aiProvider" value="api">
-            <span class="pbody"><b>My own API</b><small>OpenAI, Gemini, OpenRouter, or a local model like Ollama.</small></span>
+            <span class="pbody">
+              <b>My own AI service</b>
+              <small>OpenAI, Gemini, OpenRouter, or a local model.</small>
+              <dl>
+                <dt>Cost</dt><dd>Your provider’s rates, usually well under a cent a video</dd>
+                <dt>Privacy</dt><dd>The video’s text goes to that service</dd>
+                <dt>Needs</dt><dd>An API key (not for local models)</dd>
+              </dl>
+            </span>
           </label>
         </div>
 
-        <div class="card form" id="apiBox">
-          <label>Preset
-            <select id="preset">
-              <option value="">Choose a provider to fill in the fields…</option>
-              <option value="openai">OpenAI</option>
-              <option value="gemini">Google Gemini</option>
-              <option value="openrouter">OpenRouter</option>
-              <option value="ollama">Ollama (local)</option>
-              <option value="lmstudio">LM Studio (local)</option>
-            </select>
-          </label>
-          <label>Endpoint <small>OpenAI-compatible, without /chat/completions</small>
-            <input id="aiEndpoint" type="url" placeholder="https://api.openai.com/v1"></label>
-          <div class="two">
-            <label>Model <small>Check your provider for current names</small>
-              <input id="aiModel" type="text" placeholder="gpt-4o-mini"></label>
-            <label>Daily limit <small>Per day</small>
-              <input id="aiDailyCap" type="number" min="1" max="2000"></label>
+        <!-- Off -->
+        <div class="card status" id="offBox">
+          <span class="dot grey"></span>
+          <span>Summaries are off. The ✨ Summarize button is hidden; 📑 Chapters still work.</span>
+        </div>
+
+        <!-- On this computer -->
+        <div class="card status" id="deviceBox">
+          <span class="dot" id="deviceDot"></span>
+          <div class="grow">
+            <div id="deviceText">Checking this computer…</div>
+            <div class="progress" id="deviceProgress" hidden><i id="deviceBar"></i></div>
+            <details class="reqs">
+              <summary>What Chrome needs</summary>
+              <ul>
+                <li>Chrome 138 or newer on Windows 10 or 11, macOS 13 or newer, Linux, or a Chromebook Plus (not phones).</li>
+                <li>At least 22 GB of free disk space.</li>
+                <li>A graphics card with more than 4 GB of memory, or 16 GB of RAM and 4 CPU cores.</li>
+                <li>An unmetered internet connection for the one-time model download.</li>
+              </ul>
+            </details>
           </div>
-          <label>API key <small>Stored only on this device. Leave empty for local models.</small>
-            <input id="aiKey" type="password" autocomplete="off"></label>
-          <div class="usage"><span>Used today</span><span class="meter"><i id="usageBar"></i></span><span id="usageText">0</span></div>
+          <button type="button" class="ghost" id="deviceDownload" hidden>Download now</button>
         </div>
 
+        <!-- My own AI service -->
+        <div class="card form" id="apiBox">
+          <div class="step">
+            <span class="stepn">a</span>
+            <div class="grow">
+              <b>Choose your provider</b>
+              <div class="pills" role="radiogroup" aria-label="Provider" id="presetPills"></div>
+            </div>
+          </div>
+          <div class="step" id="keyStep">
+            <span class="stepn">b</span>
+            <div class="grow">
+              <b>Paste your API key</b> <a id="keyLink" href="#" target="_blank" rel="noopener">Get a key ↗</a>
+              <input id="aiKey" type="password" autocomplete="off" placeholder="Starts with sk-… or similar">
+              <small>Stored only on this computer. Sent only to your provider, with each summary you ask for.</small>
+            </div>
+          </div>
+          <div class="step" id="localStep" hidden>
+            <span class="stepn">b</span>
+            <div class="grow">
+              <b>Start your local model</b> <a id="localLink" href="#" target="_blank" rel="noopener">Download ↗</a>
+              <small id="localHint"></small>
+            </div>
+          </div>
+          <div class="step">
+            <span class="stepn">c</span>
+            <div class="grow">
+              <b>Model</b> <small>Small, fast models work well and cost the least.</small>
+              <input id="aiModel" type="text" placeholder="model name">
+            </div>
+          </div>
+          <details class="adv" id="advBox">
+            <summary>Endpoint address</summary>
+            <input id="aiEndpoint" type="url" placeholder="https://api.example.com/v1">
+            <small>Any OpenAI-compatible service. Leave off the trailing /chat/completions.</small>
+          </details>
+          <div class="testrow">
+            <button type="button" id="save">Save and test</button>
+            <span id="status" role="status"></span>
+          </div>
+        </div>
+
+        <h3 class="sub"><span class="num">2</span>Options</h3>
         <div class="card">
-          <label class="row"><span class="txt">Summary language<small>On-device writes English, Spanish or Japanese only; other languages need your own API.</small></span>
+          <label class="row"><span class="txt">Summary language<small id="langHint">On this computer: English, Spanish, Japanese, German or French. Your own AI service: any.</small></span>
             <select id="summaryLang">
               <option value="auto">Same as browser</option>
               <option value="en">English</option><option value="es">Spanish</option><option value="hi">Hindi</option>
@@ -83,21 +170,13 @@
               <option value="ru">Russian</option>
             </select>
           </label>
+          <div class="row" id="capRow">
+            <span class="txt">Daily limit<small>A safety net for your own AI service’s bill.</small>
+              <span class="usage"><span class="meter"><i id="usageBar"></i></span><span id="usageText">0</span></span>
+            </span>
+            <input id="aiDailyCap" type="number" min="1" max="2000" class="num">
+          </div>
         </div>
-
-        <div class="savebar" id="saveBar">
-          <button id="save" type="button">Save summary settings</button><span id="status" role="status"></span>
-        </div>
-
-        <details class="notes">
-          <summary>Good to know</summary>
-          <ul>
-            <li>Saving asks Chrome for permission to contact <i>only</i> the endpoint you entered.</li>
-            <li>Ollama users: start it with <code>OLLAMA_ORIGINS=chrome-extension://*</code> so the extension is allowed to call it.</li>
-            <li>A summary uses the video’s captions when they can be read, otherwise its description. The card says which.</li>
-            <li>A small model typically costs well under a cent per video. Your provider’s pricing page has the exact rates.</li>
-          </ul>
-        </details>
       </section>
 
       <!-- Muted words -->
