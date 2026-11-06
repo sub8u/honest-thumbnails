@@ -73,6 +73,7 @@ change is noted in the [changelog](CHANGELOG.md) and the Chrome Web Store releas
 
 ## Contact
 
-Questions or concerns about privacy: open an issue at https://github.com/sub8u/honest-thumbnails/issues
+Questions or concerns about privacy: email sub8us@gmail.com, or open an issue at
+https://github.com/sub8u/honest-thumbnails/issues
 
 Made by Subrahmanyam KVJ.
