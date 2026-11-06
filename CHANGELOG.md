@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0 (first public release)
+## 1.5.0 (first public release, 6 November 2026)
 - New look: *Honest* wordmark, compact popup, redesigned settings page with sections and an About page.
 - Title cards tinted per channel; frosted hover toolbar; refreshed summary panel on video pages.
 - New: 👁 Peek at the original thumbnail (hold Alt), dim watched videos, muted words, daily counts in the popup.

@@ -1,5 +1,8 @@
 # *Honest* Thumbnails for YouTube
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/plegclkjncdlclphhfhdidbbomlbmndc?label=Chrome%20Web%20Store&color=109a4c)](https://chromewebstore.google.com/detail/honest-thumbnails-for-you/plegclkjncdlclphhfhdidbbomlbmndc)
+[![Users](https://img.shields.io/chrome-web-store/users/plegclkjncdlclphhfhdidbbomlbmndc?color=109a4c)](https://chromewebstore.google.com/detail/honest-thumbnails-for-you/plegclkjncdlclphhfhdidbbomlbmndc)
+
 **See what a video is, not what it shouts.** Honest Thumbnails swaps over-edited, clickbait YouTube
 thumbnails for a real frame from the video or a clear title card, and calms down shouty titles.
 
@@ -47,9 +50,9 @@ Free and open source. No accounts, no analytics, no servers of ours: everything 
 
 ## Install
 
-**Chrome Web Store:** coming soon.
+**[Add to Chrome from the Chrome Web Store](https://chromewebstore.google.com/detail/honest-thumbnails-for-you/plegclkjncdlclphhfhdidbbomlbmndc)** (also works in Edge, Brave and Arc).
 
-**From source** (Chrome, Edge, Brave, Arc):
+**From source**, for trying unreleased changes:
 1. Download or clone this repository.
 2. Open `chrome://extensions` and turn on **Developer mode** (top right).
 3. Click **Load unpacked** and choose the `honest-thumbnails` folder.
