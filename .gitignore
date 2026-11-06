@@ -2,3 +2,6 @@ dist/
 node_modules/
 .DS_Store
 *.zip
+
+# Private store-dashboard notes (kept out of the public repo)
+CHROMEWEBSTORE.md

@@ -79,7 +79,6 @@ node tests/smoke.test.js       # content script starts against a stub browser
 | `src/background.js` | Calls your AI endpoint and SponsorBlock; keyboard shortcut |
 | `popup/`, `options/`, `ui/` | Popup, settings page and their shared styles |
 | `store/` | Chrome Web Store screenshots and promo tile |
-| `CHROMEWEBSTORE.md` | Store listing, permission justifications, privacy disclosures, release checklist |
 
 YouTube changes its markup often; selectors live at the top of `src/content.js`.
 
