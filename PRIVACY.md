@@ -1,6 +1,6 @@
 # Privacy Policy for Honest Thumbnails for YouTube
 
-Last updated: 1 November 2026
+Last updated: 5 November 2026
 
 Honest Thumbnails has no accounts, no analytics, no tracking and no servers run by the developer. The developer never
 receives any of your data. This policy explains what the extension stores on your device and the few cases, all started
